@@ -47,4 +47,4 @@ WORKDIR /srv/caliopen/src/backend/interfaces/NATS/py.client
 RUN python setup.py develop
 
 WORKDIR /srv/caliopen/src/backend/interfaces/NATS/py.client/caliopen_nats
-CMD ["python", "listener.py", "-f", "/srv/caliopen/src/backend/configs/caliopen-docker.yaml"]
+CMD ["python", "listener.py", "-f", "/etc/caliopen/caliopen.yaml"]

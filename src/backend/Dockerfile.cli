@@ -48,4 +48,4 @@ RUN python setup.py develop
 RUN pip install ipython
 
 WORKDIR /srv/caliopen/src/backend
-ENTRYPOINT ["caliopen", "-f", "configs/caliopen-docker.yaml"]
+ENTRYPOINT ["caliopen", "-f", "/etc/caliopen/caliopen.yaml"]
