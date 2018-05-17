@@ -11,7 +11,7 @@ export default axiosMiddleware(getClient(), {
     request: [({ getState }, config) => {
       const [min, max] = getState().importanceLevel.range;
       const { id, priv } = getConfig();
-      const signature = signRequest(config.url, priv);
+      const signature = signRequest(config, priv);
 
       return {
         ...config,

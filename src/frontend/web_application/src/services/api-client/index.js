@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { getBaseUrl } from '../config';
 import { importanceLevelHeader } from '../importance-level';
+import { queryStringify } from '../url/QueryStringSerializer';
 
 let client;
 let headers = {
@@ -30,6 +31,7 @@ export default function getClient() {
       baseURL: getBaseUrl(),
       responseType: 'json',
       headers,
+      paramsSerializer: params => queryStringify(params),
     });
   }
 
