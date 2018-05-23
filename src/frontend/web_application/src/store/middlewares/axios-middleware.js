@@ -1,8 +1,7 @@
 import axiosMiddleware from 'redux-axios-middleware';
 import { createNotification, NOTIFICATION_TYPE_ERROR } from 'react-redux-notify';
 import getClient from '../../services/api-client';
-import { getConfig } from '../../modules/device/services/storage';
-import { signRequest } from '../../modules/device/services/signature';
+import { getSignatureHeaders } from '../../modules/device/services/signature';
 import { getTranslator } from '../../services/i18n';
 
 export default axiosMiddleware(getClient(), {
@@ -10,16 +9,13 @@ export default axiosMiddleware(getClient(), {
   interceptors: {
     request: [({ getState }, config) => {
       const [min, max] = getState().importanceLevel.range;
-      const { id, priv } = getConfig();
-      const signature = signRequest(config, priv);
 
       return {
         ...config,
         headers: {
           ...config.headers,
           'X-Caliopen-IL': `${min};${max}`,
-          'X-Caliopen-Device-ID': id,
-          'X-Caliopen-Device-Signature': signature,
+          ...getSignatureHeaders(config),
         },
       };
     }],

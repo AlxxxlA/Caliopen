@@ -1,6 +1,7 @@
 /* eslint-disable import/no-extraneous-dependencies, no-restricted-globals */
 import 'babel-polyfill';
 import getClient from '../../../services/api-client';
+import { getSignatureHeaders } from '../../device/services/signature';
 
 const THROTTLE_DURATION = 50 * 1000;
 
@@ -8,14 +9,29 @@ class Poller {
   client = getClient();
   intervalId = undefined
 
+  installInterceptor = (device) => {
+    if (this.interceptor) return;
+
+    this.interceptor = this.client.interceptors.request.use(req => (
+      {
+        ...req,
+        headers: {
+          ...req.headers,
+          ...getSignatureHeaders(req, device),
+        },
+      }
+    ));
+  }
+
   stop = () => {
     if (this.intervalId) {
       clearInterval(this.intervalId);
     }
   }
 
-  start = () => {
+  start = (device) => {
     self.postMessage({ status: 'active' });
+    this.installInterceptor(device);
     this.intervalId = setInterval(async () => {
       const now = new Date();
       try {
@@ -42,10 +58,9 @@ class Poller {
     }, THROTTLE_DURATION);
   }
 
-
   handleStart = (message) => {
     if (message.action === 'start') {
-      this.start();
+      this.start(message.device);
     }
   };
 
