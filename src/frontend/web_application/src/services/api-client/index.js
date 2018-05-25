@@ -31,7 +31,21 @@ export default function getClient() {
       baseURL: getBaseUrl(),
       responseType: 'json',
       headers,
-      paramsSerializer: params => queryStringify(params),
+      paramsSerializer: params => queryStringify(params, headers),
+      transformRequest: ([(data) => {
+        if (data instanceof Blob) {
+          if (typeof FormData !== 'function') {
+            throw new Error('not a browser environment');
+          }
+
+          const transformedData = new FormData();
+          transformedData.append('attachment', data);
+
+          return transformedData;
+        }
+
+        return data;
+      }]).concat(axios.defaults.transformRequest),
     });
   }
 

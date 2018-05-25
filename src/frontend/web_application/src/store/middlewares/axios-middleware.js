@@ -7,15 +7,16 @@ import { getTranslator } from '../../services/i18n';
 export default axiosMiddleware(getClient(), {
   returnRejectedPromiseOnError: true,
   interceptors: {
-    request: [({ getState }, config) => {
+    request: [async ({ getState }, config) => {
       const [min, max] = getState().importanceLevel.range;
+      const signatureHeaders = await getSignatureHeaders(config);
 
       return {
         ...config,
         headers: {
           ...config.headers,
           'X-Caliopen-IL': `${min};${max}`,
-          ...getSignatureHeaders(config),
+          ...signatureHeaders,
         },
       };
     }],

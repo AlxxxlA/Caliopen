@@ -1,24 +1,43 @@
 import base64 from 'base64-js';
-import hash from 'object-hash';
+import { sha1 } from 'object-hash';
 import { getKeypair, sign } from '../ecdsa';
 import { getConfig } from '../storage';
 import { buildURL } from '../../../../services/url';
+import { readAsArrayBuffer } from '../../../file/services';
 
-const buildMessage = ({ url, params }) => {
-  const message = buildURL(url, params);
+const buildMessage = async ({ url, params, data }) => {
+  // TODO : TextEncoder does not exist in IE/Safari
+  const encoder = new TextEncoder();
+  const builtURL = encoder.encode(buildURL(url, params));
 
-  return hash.sha1(message);
+  let message = builtURL.buffer;
+
+  if (data instanceof Blob) {
+    message = new Uint8Array([
+      ...builtURL,
+      ...await readAsArrayBuffer(data),
+    ]).buffer;
+  }
+
+  if (data === Object(data)) {
+    message = new Uint8Array([
+      ...builtURL,
+      ...encoder.encode(JSON.stringify(data)),
+    ]).buffer;
+  }
+
+  return sha1(message);
 };
 
-export const signRequest = (messageParts, priv) => {
-  const message = buildMessage(messageParts);
+export const signRequest = async (req, privateKey) => {
+  const message = await buildMessage(req);
 
-  return base64.fromByteArray(sign(getKeypair(priv), message).toDER());
+  return base64.fromByteArray(sign(getKeypair(privateKey), message).toDER());
 };
 
-export const getSignatureHeaders = (req, device) => {
+export const getSignatureHeaders = async (req, device) => {
   const { id, priv } = device || getConfig();
-  const signature = signRequest(req, priv);
+  const signature = await signRequest(req, priv);
 
   return {
     'X-Caliopen-Device-ID': id,
